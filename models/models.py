@@ -8,7 +8,14 @@ from mongoengine import *
 from bson import ObjectId
 
 def connect_db():
-    connect("poloniex", "db")
+    connect("ptest", "db")
+
+    
+# first
+# from models.models import *
+# connect_db()
+# i = Investor(name = "", apikey = "", apisecret = "")
+# i.save()
 
 class Investor(Document):
     name =                      StringField()
@@ -64,9 +71,7 @@ class DailyLoanHistory(Document):
 class Interest(Document):
     investor_id =               ObjectIdField()
     currency =                  StringField()
-    mrate =                     DecimalField(precision=8)
-    brate =                     DecimalField(precision=8)
-    xrate =                     DecimalField(precision=8)
+    qrate =                     DecimalField(precision=8)
     created =                   DateTimeField(default=datetime.now)
 
     meta = {

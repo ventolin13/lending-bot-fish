@@ -36,8 +36,9 @@ def update_interests():
     powers = {}
     investor = Investor.objects(is_active=True).first()
     interests = get_lending_interest(investor, "BTC")
-    rateq = sorted(interests, key=lambda x:x["rate"])[:5][0] # quantil
-    interest = Interest(investor_id=investor.id, currency="BTC", rateq=rqteq)
+    qrate = sorted(interests, key=lambda x:x["rate"])[:5][0] # quantil
+    qrate = Decimal(qrate["rate"])
+    interest = Interest(investor_id=investor.id, currency="BTC", qrate=qrate)
     interest.save()
 
 
@@ -70,16 +71,16 @@ def make_loans():
         l.fee = h["fee"]
         l.earned = h["earned"]
         l.interest = h["interest"]
-        l.balance = balance[currency]+obalance[currency]
-        l.abalance = abalance[currency]
+        l.balance = balance+obalance
+        l.abalance = abalance
         l.save()
 
-    total = balance[currency] + obalance[currency] + abalance[currency] #estimate balance
-    print "%s balances f: %s, o: %s, a: %s = t: %s" % (currency, balance[currency], obalance[currency], abalance[currency], total)
+    total = balance + obalance + abalance #estimate balance
+    print "%s balances f: %s, o: %s, a: %s = t: %s" % (currency, balance, obalance, abalance, total)
+    BTC balances f: 0, o: 0.01847761, a: 0.35108246 = t: 0.36956007
 
-    qrate_list = Interest.objects(Q(investor_id=investor.id)&Q(currency=currency)).distinct("qrate").order_by("-created")[:240]
-    qrate_list = len(qrate_list)
-    if len(qrate_list) < 240: return
+    qrate_list = Interest.objects(Q(investor_id=investor.id)&Q(currency=currency)).order_by("-created").distinct("qrate")[:24]
+    if len(qrate_list) < 24: return
     
     is_trade = True
     
@@ -87,11 +88,12 @@ def make_loans():
 #    History rate analize and something else
 #    if balance < total/2: is_trade = False
 
-    rate = sorted(qrate_list)[120] # average
+    rate = sorted(qrate_list)[12] # average
     amount = min(balance, max(total/5, MIN_AMOUNT["BTC"]))
     
-    if is_trade:
-        ret = make_lending_offer(investor, "BTC", amount, rate, 2, "", autoRenew=0)
+    if is_trade and balance > 0:
+        print investor, currency, amount, rate
+        ret = make_lending_offer(investor, currency, amount, rate, 2, "", autoRenew=0)
         if ret: balance -= amount
 
     investor.last_update = datetime.datetime.now()
