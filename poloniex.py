@@ -25,7 +25,7 @@ class poloniex:
                             
         return after
 
-    def api_query(self, command, req={}):
+    def api_query(self, command, payload={}):
 
         if(command == "returnTicker" or command == "return24Volume"):
             ret = urllib2.urlopen(urllib2.Request('https://poloniex.com/public?command=' + command))
@@ -34,23 +34,24 @@ class poloniex:
             ret = urllib2.urlopen(urllib2.Request('https://poloniex.com/public?command=' + command + '&currencyPair=' + str(req['currencyPair'])))
             return json.loads(ret.read())
         elif(command == "returnMarketTradeHistory"):
-            ret = urllib2.urlopen(urllib2.Request('https://poloniex.com/public?command=' + "returnTradeHistory" + '&currencyPair=' + str(req['currencyPair'])))
+            ret = urllib2.urlopen(urllib2.Request('https://poloniex.com/public?command=' + "returnTradeHistory" + '&currencyPair=' + str(payload['currencyPair'])))
             return json.loads(ret.read())
         elif(command == "returnLoanOrders"):
-            ret = urllib2.urlopen(urllib2.Request('https://poloniex.com/public?command=' + "returnLoanOrders" + '&currency=' + str(req['currency'])))
+            ret = urllib2.urlopen(urllib2.Request('https://poloniex.com/public?command=' + "returnLoanOrders" + '&currency=' + str(payload['currency'])))
             return json.loads(ret.read())
         else:
-            req['command'] = command
-            req['nonce'] = int(time.time()*1000)
-            post_data = urllib.urlencode(req)
+            payload['command'] = command
+            payload['nonce'] = int(time.time()*1000)
+            post_data = urllib.urlencode(payload)
 
             sign = hmac.new(self.Secret, post_data, hashlib.sha512).hexdigest()
             headers = {
                 'Sign': sign,
                 'Key': self.APIKey
             }
-
-            ret = urllib2.urlopen(urllib2.Request('https://poloniex.com/tradingApi', post_data, headers))
+            req = urllib2.Request('https://poloniex.com/tradingApi', post_data, headers)
+            req.add_header("Content-Type", "application/json")
+            ret = urllib2.urlopen(req)
             jsonRet = json.loads(ret.read())
             return self.post_process(jsonRet)
 
