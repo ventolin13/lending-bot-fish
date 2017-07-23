@@ -50,7 +50,7 @@ class poloniex:
                 'Key': self.APIKey
             }
             req = urllib2.Request('https://poloniex.com/tradingApi', post_data, headers)
-            req.add_header("Content-Type", "application/json")
+#            req.add_header("Content-Type", "application/json")
             ret = urllib2.urlopen(req)
             jsonRet = json.loads(ret.read())
             return self.post_process(jsonRet)
